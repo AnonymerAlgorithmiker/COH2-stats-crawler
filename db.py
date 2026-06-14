@@ -30,7 +30,6 @@ def init_db() -> None:
     # Create match_players table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS match_players (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
             match_id INTEGER NOT NULL,
             profile_id INTEGER NOT NULL,
             profile_name TEXT,
@@ -38,6 +37,7 @@ def init_db() -> None:
             race_id TEXT,
             resulttype TEXT,
             counters TEXT,
+            PRIMARY KEY (match_id, profile_id),
             FOREIGN KEY (match_id) REFERENCES matches(id)
         )
     """)
