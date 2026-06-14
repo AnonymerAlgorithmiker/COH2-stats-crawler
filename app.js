@@ -11,13 +11,14 @@ import {
 } from 'discord-interactions';
 import { DiscordRequest } from './utils.js';
 import {Database} from './DB.js';
+import cron from 'node-cron';
+import fetch from 'node-fetch';
 
 // Create an express app
 const app = express();
 // Get port, or default to 3000
 const PORT = process.env.PORT || 3000;
-// To keep track of our active games
-const activeGames = {};
+const database = new Database();
 
 /**
  * Interactions endpoint URL where Discord will send HTTP requests
@@ -58,7 +59,6 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
       });
     }
     if (name == 'fetch'){
-      const database = new Database();
       database.fetchNewestData();
       return res.send({
         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
@@ -85,3 +85,22 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
 app.listen(PORT, () => {
   console.log('Listening on port', PORT);
 });
+
+// cron.schedule(" * * * * * *", function() {
+//   //  database.fetchNewestData();
+// });
+// sendMessage('Hello World!');
+
+const url = `https://discord.com/api/webhooks/1515843752739209357/xPLgeKjAMLMisMJ9-1VcjrUKWObrdy9ejiaHCFtJlFaprbY3WDVsjpo1rpWvUnI-PA9A`;
+
+function sendMessage(message) {
+   fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({"username": "Hashnode Bot", "content": `New blog post 👉 [${message.title}](${message.url})`})
+    });
+}
+
+sendMessage({title: "test", url: "https://www.google.com"});

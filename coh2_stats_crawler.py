@@ -2,9 +2,10 @@ import argparse
 import json
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
+import sys
 
 import requests
-from db import init_db, insert_match, insert_match_players, get_match_count
+from db import amount_matches, init_db, insert_match, insert_match_players, get_match_count
 
 # Human-friendly labels for Relic's matchtype_id codes (observed mapping)
 MATCH_TYPE_MAP = {
@@ -162,29 +163,17 @@ def main() -> None:
     print(f"Returned {len(sorted_matches)} matches from the API. Showing up to {args.limit}.")
 
     # Store matches to database
-    stored_count = 0
+    stored_count = amount_matches()
     if not args.no_db:
         print("Storing matches to database...")
         for match in sorted_matches:
             try:
                 insert_match(match)
                 insert_match_players(match.get("id"), match.get("matchhistoryreportresults", []))
-                stored_count += 1
             except Exception as e:
                 print(f"Error storing match {match.get('id')}: {e}")
 
-    # Always print details of the newest match
-    newest_match = sorted_matches[0]
-    # print("\n" + "=" * 80)
-    # print_match_details(newest_match, profiles)
-    # print("=" * 80)
-
-    # Then print summaries of remaining matches
-    # print("\nRecent Matches:")
-    # for index, match in enumerate(sorted_matches[: args.limit], start=1):
-    #     print_match_summary(match, index)
-    #     if args.show_details:
-    #         print_match_details(match, profiles)
+    stored_count = amount_matches() - stored_count  
 
     # Summary
     if not args.no_db:
@@ -194,6 +183,7 @@ def main() -> None:
     if not args.show_details and args.limit > 1:
         print("\nUse --show-details to print player details for each returned match.")
 
+    sys.exit(stored_count)
 
 if __name__ == "__main__":
     main()

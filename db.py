@@ -121,6 +121,15 @@ def insert_match(match: Dict[str, Any]) -> int:
     conn.close()
     return match_id
 
+def amount_matches()-> int:
+    """Get the count of new matches added to the database."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM matches")
+    count = cursor.fetchone()[0]
+    conn.close()
+    return count
+
 def matchtypeIDtoText(matchtype_id: int) -> str:
     """Convert match type ID to human-readable text."""
     mapping = {

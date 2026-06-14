@@ -17,9 +17,12 @@
   "author": "Shay DeWael",
   "license": "MIT",
   "dependencies": {
+    "cron": "^4.4.0",
     "discord-interactions": "^4.0.0",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
+    "node-cron": "^4.2.1",
+    "node-fetch": "^3.3.2",
     "python": "^0.0.4",
     "sqlite": "^5.1.1",
     "sqlite3": "^6.0.1"

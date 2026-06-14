@@ -53,6 +53,14 @@ export class Database {
         pythonProcess.stderr.on('data', (data) => {
             console.error(`stderr: ${data}`);
         });
+
+        pythonProcess.on('exit', (data) => {
+            if(data == 0){
+                console.log("No new matches added to the database.");
+            }else {
+                console.log(`Added ${data} new matches to the database.`);
+            }
+        });
     }
 }
 
