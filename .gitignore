@@ -1,0 +1,5 @@
+node_modules
+.env
+._pycache__
+.vscode
+coh2_matches.db
