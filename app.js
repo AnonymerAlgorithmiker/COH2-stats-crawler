@@ -59,6 +59,7 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
       });
     }
     if (name == 'fetch'){
+      const amount = data.options[0].value;
       database.fetchNewestData();
       return res.send({
         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
@@ -67,7 +68,7 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
           components: [
             {
               type: MessageComponentTypes.TEXT_DISPLAY,
-              content: `Fetched matches: ${database.fetchMatches(1)}`
+              content: `Fetched matches: ${database.fetchMatches(amount)}`
             }
           ]
         }
@@ -87,14 +88,12 @@ app.listen(PORT, () => {
 });
 
 // cron.schedule(" * * * * * *", function() {
-//   //  database.fetchNewestData();
+//     database.fetchNewestData();
 // });
-// sendMessage('Hello World!');
 
-const url = `https://discord.com/api/webhooks/1515843752739209357/xPLgeKjAMLMisMJ9-1VcjrUKWObrdy9ejiaHCFtJlFaprbY3WDVsjpo1rpWvUnI-PA9A`;
 
 function sendMessage(message) {
-   fetch(url, {
+   fetch(process.env.WebHook_URL, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"

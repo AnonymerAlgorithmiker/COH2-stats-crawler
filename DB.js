@@ -59,6 +59,7 @@ export class Database {
                 console.log("No new matches added to the database.");
             }else {
                 console.log(`Added ${data} new matches to the database.`);
+                fetchMatches(data);
             }
         });
     }

@@ -30,6 +30,12 @@ const FETCH_COMMAND = {
   name: 'fetch',
   description: 'Fetch Coh2 Stats Data',
   type: 1,
+  options: [{
+    type: 4,
+    name: 'amount',
+    description: 'Amount of matches to fetch',
+    required: true,
+  } ],
   integration_types: [0, 1],
   contexts: [0, 1, 2],
 };
