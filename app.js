@@ -20,6 +20,7 @@ const app = express();
 // Get port, or default to 3000
 const PORT = process.env.PORT || 3000;
 const database = new Database();
+const webhookUrls = {"1514343022169690305": process.env.WebHook_URL1,"1520761872520052736": process.env.WebHook_URL2, "1520778924320358550": process.env.WebHook_URL3}
 
 app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async function (req, res) {
   // Interaction id, type and data
@@ -48,12 +49,12 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
         },
       });
     }
-
+    const ChannelID = req.body.channel_id;
     if (name == 'fetch'){
       const amount = data.options[0].value;
       database.fetchNewestData();
       const codeBlock = database.fetchMatchesCodeBlock(amount, true);
-      sendMessage(codeBlock);
+      sendMessage(codeBlock,webhookUrls[ChannelID]);
       return res.send({
         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
         data: {
@@ -75,15 +76,15 @@ app.listen(PORT, () => {
 });
 
 cron.schedule(" * * * * *", function() {
-    sendMessage(database.fetchNewestData());
-    console.log("fetching");
-    // const codeBlock = database.fetchMatchesCodeBlock(1);
-    // sendMessage(codeBlock);
+    console.log("crawling");
+    for (const [ChannelID, URL] of Object.entries(webhookUrls)) {
+      sendMessage(database.fetchNewestData(),URL);
+    }
 });
 
 
-function sendMessage(message) {
-   fetch(process.env.WebHook_URL, {
+function sendMessage(message, URL) {
+   fetch(URL, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
