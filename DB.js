@@ -1,6 +1,7 @@
 
 import {DatabaseSync}  from 'node:sqlite';
 import { spawn } from 'child_process';
+import { profile } from 'console';
 
 
 
@@ -11,7 +12,7 @@ export class Database {
     }
 
 // Reads 
-    fetchMatchesCodeBlock(amount){
+    fetchMatchesCodeBlock(amount, bots){
         const sqlStatement = `SELECT * FROM Matches order by startgametime desc`;
         const matchquery = this.db.prepare(sqlStatement);
         const matches = matchquery.all();
@@ -22,6 +23,15 @@ export class Database {
             const match = matches[i];
             const playerStmt = this.fetchPlayers(match);
             const players = playerStmt.all();
+            const team0 = players.filter(p => p.teamid == 0);
+            const team1 = players.filter(p => p.teamid == 1);
+            if (bots && !(team0.length == team1.length)){
+                if(team0.length < team1.length){
+                    team0.push({profile_name: 'CPU',teamid: 0})
+                }else{
+                    team1.push({profile_name: 'CPU',teamid: 1})
+                }
+            }
 
             out += `Map: ${match.mapname}\n`;
 
@@ -31,8 +41,6 @@ export class Database {
 
             out += '-'.repeat(colWidth) + ' | ' + '-'.repeat(colWidth - 3) + "\n";
 
-            const team0 = players.filter(p => p.teamid == 0);
-            const team1 = players.filter(p => p.teamid == 1);
             const rows = Math.max(team0.length, team1.length);
 
             for (let r = 0; r < rows; r++) {
@@ -65,7 +73,7 @@ export class Database {
                 console.log("No new matches added to the database.");
             }else {
                 console.log(`Added ${data} new matches to the database.`);
-                return this.fetchMatchesCodeBlock(data);
+                return this.fetchMatchesCodeBlock(data, true);
             }
         });
     }

@@ -52,7 +52,7 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
     if (name == 'fetch'){
       const amount = data.options[0].value;
       database.fetchNewestData();
-      const codeBlock = database.fetchMatchesCodeBlock(amount);
+      const codeBlock = database.fetchMatchesCodeBlock(amount, true);
       sendMessage(codeBlock);
       return res.send({
         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
