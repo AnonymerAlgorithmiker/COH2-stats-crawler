@@ -152,7 +152,8 @@ def playerIDtoText(player_id: int) -> str:
         5407006: "Foooolix",
         6738994: "GeGeGerrit",
         1577976: "Der G",
-        6802047: "Paul der Befreier"
+        6802047: "Paul der Befreier",
+        6809567: "Axel"
     }
     return mapping.get(player_id, "Unknown Player")
 

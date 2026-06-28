@@ -9,37 +9,43 @@ export class Database {
         this.db = new DatabaseSync('coh2_matches.db');
         this.out = '';
     }
-    fetchMatches(amount){
+
+// Reads 
+    fetchMatchesCodeBlock(amount){
         const sqlStatement = `SELECT * FROM Matches order by startgametime desc`;
         const matchquery = this.db.prepare(sqlStatement);
-        for (let i = 0; i < amount; i++) {
-            const match = matchquery.get();
-            const playerQuery = this.fetchPlayers(match);
-            playerQuery.get();
-            this.out += matchquery.all()[i]["mapname"] + "\n";
-            // console.log(playerQuery.all());
-            let team1Announced = false;
-            let team2Announced = false;
-            for(let j = 0; j < playerQuery.all().length; j++){
-                if(playerQuery.all()[j]["teamid"] == 0 && !team1Announced){
-                    this.out += "Team 1:\n";
-                    this.out += matchquery.all()[i]["team0_vp"] + "\n";
-                    team1Announced = true;
-                }
-                if(playerQuery.all()[j]["teamid"] == 1 && !team2Announced){
-                    this.out += "Team 2:\n";
-                    this.out += matchquery.all()[i]["team1_vp"] + "\n";
-                    team2Announced = true;
-                }
-                this.out += playerQuery.all()[j]["profile_name"] + "\n";
-            }
-        }
-        return this.out;
-    }
+        const matches = matchquery.all();
+        const colWidth = 30;
+        let out = '';
 
-    fetchPlayers(Match){
-        const sqlStatement = `SELECT * FROM match_players WHERE match_id = ${Match.id} order by teamid desc`;
-        return this.db.prepare(sqlStatement);
+        for (let i = 0; i < Math.min(amount, matches.length); i++) {
+            const match = matches[i];
+            const playerStmt = this.fetchPlayers(match);
+            const players = playerStmt.all();
+
+            out += `Map: ${match.mapname}\n`;
+
+            const headerLeft = `Team 1 (VP ${match.team0_vp})`;
+            const headerRight = `Team 2 (VP ${match.team1_vp})`;
+            out += headerLeft.padEnd(colWidth) + ' | ' + headerRight + "\n";
+
+            out += '-'.repeat(colWidth) + ' | ' + '-'.repeat(colWidth - 3) + "\n";
+
+            const team0 = players.filter(p => p.teamid == 0);
+            const team1 = players.filter(p => p.teamid == 1);
+            const rows = Math.max(team0.length, team1.length);
+
+            for (let r = 0; r < rows; r++) {
+                const left = team0[r] ? team0[r].profile_name : '';
+                const right = team1[r] ? team1[r].profile_name : '';
+                out += left.padEnd(colWidth) + ' | ' + right.padEnd(colWidth) + "\n";
+            }
+
+            out += "\n";
+        }
+
+        // wrap in a code block for Discord
+        return "```text\n" + out + "```";
     }
 
     fetchNewestData(){
@@ -59,14 +65,13 @@ export class Database {
                 console.log("No new matches added to the database.");
             }else {
                 console.log(`Added ${data} new matches to the database.`);
-                fetchMatches(data);
+                return this.fetchMatchesCodeBlock(data);
             }
         });
     }
+
+    fetchPlayers(Match){
+        const sqlStatement = `SELECT * FROM match_players WHERE match_id = ${Match.id} order by teamid desc`;
+        return this.db.prepare(sqlStatement);
+    }
 }
-
-// const DB = new Database();
-// DB.fetchNewestData();
-// console.log(Database.fetchMatches(1));
-
-// module.exports = Database;

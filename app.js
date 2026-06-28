@@ -13,6 +13,7 @@ import { DiscordRequest } from './utils.js';
 import {Database} from './DB.js';
 import cron from 'node-cron';
 import fetch from 'node-fetch';
+import { Client, Events, GatewayIntentBits } from 'discord.js';
 
 // Create an express app
 const app = express();
@@ -20,10 +21,6 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const database = new Database();
 
-/**
- * Interactions endpoint URL where Discord will send HTTP requests
- * Parse request body and verifies incoming requests using discord-interactions package
- */
 app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async function (req, res) {
   // Interaction id, type and data
   const { id, type, data } = req.body;
@@ -42,35 +39,25 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
     const { name } = data;
 
     // "test" command
-    if (name === 'test2') {
+    if (name === 'test') {
       // Send a message into the channel where command was triggered from
       return res.send({
         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
         data: {
-          flags: InteractionResponseFlags.IS_COMPONENTS_V2,
-          components: [
-            {
-              type: MessageComponentTypes.TEXT_DISPLAY,
-              // Fetches a random emoji to send from a helper function
-              content: `hello world`
-            }
-          ]
+          content: 'Loading ...',
         },
       });
     }
+
     if (name == 'fetch'){
       const amount = data.options[0].value;
       database.fetchNewestData();
+      const codeBlock = database.fetchMatchesCodeBlock(amount);
+      sendMessage(codeBlock);
       return res.send({
         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
         data: {
-          flags: InteractionResponseFlags.IS_COMPONENTS_V2,
-          components: [
-            {
-              type: MessageComponentTypes.TEXT_DISPLAY,
-              content: `Fetched matches: ${database.fetchMatches(amount)}`
-            }
-          ]
+          content: 'Loading ...'
         }
       });
     }
@@ -87,9 +74,12 @@ app.listen(PORT, () => {
   console.log('Listening on port', PORT);
 });
 
-// cron.schedule(" * * * * * *", function() {
-//     database.fetchNewestData();
-// });
+cron.schedule(" * * * * *", function() {
+    sendMessage(database.fetchNewestData());
+    console.log("fetching");
+    // const codeBlock = database.fetchMatchesCodeBlock(1);
+    // sendMessage(codeBlock);
+});
 
 
 function sendMessage(message) {
@@ -98,8 +88,11 @@ function sendMessage(message) {
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({"username": "Hashnode Bot", "content": `New blog post 👉 [${message.title}](${message.url})`})
+        body: JSON.stringify({"username": "CoH Bot", "content": message})
     });
 }
 
-sendMessage({title: "test", url: "https://www.google.com"});
+// const amount = 10;
+// database.fetchNewestData();
+// const codeBlock = database.fetchMatchesCodeBlock(amount);
+// sendMessage(codeBlock);
