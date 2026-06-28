@@ -13,7 +13,7 @@ import { DiscordRequest } from './utils.js';
 import {Database} from './DB.js';
 import cron from 'node-cron';
 import fetch from 'node-fetch';
-import { Client, Events, GatewayIntentBits } from 'discord.js';
+import { Client, Events, GatewayIntentBits, resolveColor } from 'discord.js';
 
 // Create an express app
 const app = express();
@@ -52,7 +52,7 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async fun
     const ChannelID = req.body.channel_id;
     if (name == 'fetch'){
       const amount = data.options[0].value;
-      database.fetchNewestData();
+      database.fetchNewestData(false);
       const codeBlock = database.fetchMatchesCodeBlock(amount, true);
       sendMessage(codeBlock,webhookUrls[ChannelID]);
       return res.send({
@@ -77,13 +77,11 @@ app.listen(PORT, () => {
 
 cron.schedule(" * * * * *", function() {
     console.log("crawling");
-    for (const [ChannelID, URL] of Object.entries(webhookUrls)) {
-      sendMessage(database.fetchNewestData(),URL);
-    }
+    database.fetchNewestData(true);
 });
 
 
-function sendMessage(message, URL) {
+export function sendMessage(message, URL) {
    fetch(URL, {
         method: "POST",
         headers: {
@@ -92,8 +90,3 @@ function sendMessage(message, URL) {
         body: JSON.stringify({"username": "CoH Bot", "content": message})
     });
 }
-
-// const amount = 10;
-// database.fetchNewestData();
-// const codeBlock = database.fetchMatchesCodeBlock(amount);
-// sendMessage(codeBlock);

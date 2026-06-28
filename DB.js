@@ -2,7 +2,9 @@
 import {DatabaseSync}  from 'node:sqlite';
 import { spawn } from 'child_process';
 import { profile } from 'console';
+import { sendMessage } from './app.js';
 
+const webhookUrls = {"1514343022169690305": process.env.WebHook_URL1,"1520761872520052736": process.env.WebHook_URL2, "1520778924320358550": process.env.WebHook_URL3}
 
 
 export class Database {
@@ -53,19 +55,19 @@ export class Database {
         }
 
         // wrap in a code block for Discord
-        return "```text\n" + out + "```";
+        return "```Dies ist kein Bug gehen sie weiter\n" + out + "```";
     }
 
-    fetchNewestData(){
+    fetchNewestData(send){
 
         const pythonProcess = spawn('python', ['coh2_stats_crawler.py', "--relic", "961334", "--show-details"]);
         // const pythonProcess = spawn('python', ['test.py']);
 
         pythonProcess.stdout.on('data', (data) => {
-            console.log(`stdout: ${data}`);
+            console.log(`${data}`);
         });
         pythonProcess.stderr.on('data', (data) => {
-            console.error(`stderr: ${data}`);
+            console.error(`${data}`);
         });
 
         pythonProcess.on('exit', (data) => {
@@ -73,7 +75,12 @@ export class Database {
                 console.log("No new matches added to the database.");
             }else {
                 console.log(`Added ${data} new matches to the database.`);
-                return this.fetchMatchesCodeBlock(data, true);
+                if(send){
+                    const codeblock = this.fetchMatchesCodeBlock(data,true);
+                    for (const [ChannelID, URL] of Object.entries(webhookUrls)) {
+                        sendMessage(codeblock,URL);
+                    }
+                }
             }
         });
     }
