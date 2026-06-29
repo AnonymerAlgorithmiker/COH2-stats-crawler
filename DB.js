@@ -55,7 +55,12 @@ export class Database {
         }
 
         // wrap in a code block for Discord
-        return "```Dies ist kein Bug gehen sie weiter\n" + out + "```";
+        if(out == ''){
+            return 'Dies ist kein Bug gehen sie weiter';
+        }else
+        {
+            return "```\n" + out + "```";
+        }
     }
 
     fetchNewestData(send){
